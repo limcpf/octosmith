@@ -1,3 +1,8 @@
+---
+name: subpr-orchestrator
+description: GitHub issue 하나를 mother branch와 여러 sub PR/worktree로 나눠 병렬 또는 순차 작업 흐름으로 운영할 때 사용한다.
+---
+
 # subpr-orchestrator
 
 GitHub issue 하나를 mother branch와 여러 sub PR로 나눠 실제 작업 가능한 흐름으로 운영할 때 사용한다.

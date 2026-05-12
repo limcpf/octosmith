@@ -1,3 +1,8 @@
+---
+name: prd-writer
+description: 사용자의 아이디어나 기존 자료를 PRD와 기능 요구사항 문서로 정리하고 acceptance criteria와 open question을 분리할 때 사용한다.
+---
+
 # prd-writer
 
 사용자의 아이디어, 기존 README, 회의 메모, issue 초안을 `docs/PRD.md`와 `docs/FEATURE_REQUIREMENTS.md`로 정리할 때 사용한다.

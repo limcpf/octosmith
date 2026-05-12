@@ -1,3 +1,8 @@
+---
+name: project-bootstrap
+description: 새 프로젝트에 AGENTS, docs, Codex hooks, GitHub 템플릿, 검증 스크립트, 기본 skills 구조를 적용할 때 사용한다.
+---
+
 # project-bootstrap
 
 새 프로젝트에 Codex-native 개발 운영 구조를 적용할 때 사용한다. 목표는 문서 라우터, 기본 docs, Codex hook, GitHub 템플릿, 검증 스크립트, 기본 skill을 한 번에 갖추는 것이다.

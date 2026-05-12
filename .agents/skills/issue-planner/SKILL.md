@@ -1,3 +1,8 @@
+---
+name: issue-planner
+description: PRD, 기능 요구사항, 개발 일정 문서를 읽고 구현 가능한 GitHub issue 초안 또는 issue 생성까지 수행할 때 사용한다.
+---
+
 # issue-planner
 
 PRD, 기능 요구사항, 개발 일정 문서를 읽고 GitHub issue를 작성하거나 생성할 때 사용한다.

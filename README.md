@@ -1,3 +1,5 @@
+[한국어](./README.md) | [English](./README.en.md) | [日本語](./README.ja.md)
+
 # OctoSmith
 
 OctoSmith는 Codex, Git, GitHub를 최대한 활용해 아이디어를 PRD, issue, mother/sub PR, review-clean PR로 벼려내는 Codex-native 개발 운영 보일러플레이트입니다.

@@ -263,9 +263,10 @@ async function collectImmediateFiles(startRelPath) {
 
 async function collectRootDocs(startRelPath) {
   const files = await collectFiles(startRelPath);
+  const rootDocNames = new Set(["AGENTS.md", "ARCHITECTURE.md", "README.md", "README.en.md", "README.ja.md"]);
   return files.filter((filePath) => {
     const baseName = path.posix.basename(filePath);
-    return !filePath.includes("/") && ["AGENTS.md", "ARCHITECTURE.md", "README.md"].includes(baseName);
+    return !filePath.includes("/") && rootDocNames.has(baseName);
   });
 }
 

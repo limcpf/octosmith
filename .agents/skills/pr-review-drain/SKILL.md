@@ -1,3 +1,8 @@
+---
+name: pr-review-drain
+description: 현재 branch 또는 지정한 PR의 리뷰 댓글, unresolved thread, checks를 clean 상태까지 처리할 때 사용한다.
+---
+
 # pr-review-drain
 
 현재 branch 또는 지정한 PR의 review feedback을 clean 상태까지 닫을 때 사용한다.

@@ -18,8 +18,12 @@ async function main() {
     }
   }
 
-  if (!/codex_hooks\s*=\s*true/.test(config)) {
-    errors.push(".codex/config.toml 에 codex_hooks = true 설정이 없습니다.");
+  if (!/^\s*hooks\s*=\s*true\s*(?:#.*)?$/m.test(config)) {
+    errors.push(".codex/config.toml 에 hooks = true 설정이 없습니다.");
+  }
+
+  if (/^\s*codex_hooks\s*=/.test(config)) {
+    errors.push(".codex/config.toml 에 deprecated codex_hooks 설정이 남아 있습니다. hooks = true 를 사용하세요.");
   }
 
   const commands = collectHookCommands(hooksJson);
