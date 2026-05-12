@@ -11,7 +11,7 @@
     {
       "path": "ARCHITECTURE.md",
       "kind": "reference",
-      "role": "Codex-native 운영 보일러플레이트 구조 지도",
+      "role": "OctoSmith 운영 보일러플레이트 구조 지도",
       "read_when": ["항상", "저장소 구조 확인"],
       "owner_scope": "root"
     },

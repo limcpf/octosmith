@@ -1,6 +1,11 @@
-# boAiler
+# OctoSmith
 
-Codex-native 개발 운영 보일러플레이트입니다. 별도 오케스트레이션 서버를 먼저 만들지 않고, `AGENTS.md`, `docs`, `.codex` hooks, 재사용 가능한 skill, GitHub issue/PR/Actions를 조합해 PRD 작성부터 issue 분해, mother/sub PR 운영, 리뷰 drain까지 반복 가능한 흐름을 제공합니다.
+OctoSmith는 Codex, Git, GitHub를 최대한 활용해 아이디어를 PRD, issue, mother/sub PR, review-clean PR로 벼려내는 Codex-native 개발 운영 보일러플레이트입니다.
+
+```text
+OctoSmith
+A Codex-native forge for GitHub issues, branches, and review-ready PRs.
+```
 
 ## 전제 조건
 
@@ -34,7 +39,7 @@ Codex는 단일 작업 수행에는 강하지만, 실제 개발 운영에서는 
 - review comment, unresolved thread, checks, 재리뷰 요청이 수동으로 누락됩니다.
 - hook이나 문서 규칙 없이 Codex가 매번 다른 순서로 움직입니다.
 
-boAiler는 이 문제를 서버가 아니라 문서, skill, hook, GitHub 표면으로 해결합니다.
+OctoSmith는 이 문제를 서버가 아니라 문서, skill, hook, GitHub 표면으로 해결합니다.
 
 ## 전체 구조
 
@@ -93,7 +98,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[빈 프로젝트 또는 기존 프로젝트] --> B[boAiler 구조 적용]
+  A[빈 프로젝트 또는 기존 프로젝트] --> B[OctoSmith 구조 적용]
   B --> C[프로젝트별 README와 PRD 작성]
   C --> D[언어별 manifest 필요 여부 판단]
   D -->|필요함| E[pyproject Cargo go.mod package 등 추가]

@@ -1,11 +1,17 @@
-# Codex-native 운영 보일러플레이트 아키텍처
+# OctoSmith 아키텍처
 
-이 저장소는 별도 오케스트레이션 서버 없이 Codex, GitHub, git worktree, 문서 라우터, hook, 재사용 가능한 skill을 조합해 개발 운영을 반복 가능하게 만드는 보일러플레이트다.
+OctoSmith는 별도 오케스트레이션 서버 없이 Codex, GitHub, git worktree, 문서 라우터, hook, 재사용 가능한 skill을 조합해 개발 운영을 반복 가능하게 만드는 보일러플레이트다.
+
+태그라인:
+
+```text
+A Codex-native forge for GitHub issues, branches, and review-ready PRs.
+```
 
 ## 핵심 경계
 
 ```text
-boAiler
+OctoSmith
  ├─ AGENTS.md
  │  └─ 작업 전 문서 라우터
  ├─ docs/
