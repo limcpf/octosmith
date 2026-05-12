@@ -94,6 +94,7 @@ flowchart TD
 1. 이 보일러플레이트를 프로젝트 루트에 적용합니다.
 2. 프로젝트 언어에 맞는 manifest는 필요할 때만 추가합니다.
 3. `README.md`, `ARCHITECTURE.md`, `docs/PRD.md`, `docs/FEATURE_REQUIREMENTS.md`를 프로젝트 내용으로 채웁니다.
+   - `README.en.md`, `README.ja.md`는 OctoSmith 저장소용 배포 문서입니다. 대상 프로젝트에서 다국어 README가 필요 없으면 삭제하거나 `README.md`에서 언어 링크를 제거해도 됩니다.
 4. `./scripts/verify`로 문서 라우팅, hook 설정, GitHub 운영 파일을 확인합니다.
 5. GitHub remote와 기본 branch를 연결합니다.
 6. 요구사항을 입력해 `prd-writer`부터 운영 흐름을 시작합니다.

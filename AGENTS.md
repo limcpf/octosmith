@@ -5,7 +5,6 @@
 ## 항상 먼저 읽을 문서
 
 - [`ARCHITECTURE.md`](./ARCHITECTURE.md)
-- [`README.md`](./README.md)
 - 현재 작업 경로와 가장 가까운 `AGENTS.md`
 
 ## 작업 유형별 추가로 읽을 문서

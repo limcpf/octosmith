@@ -94,6 +94,7 @@ flowchart TD
 1. Apply this boilerplate at the project root.
 2. Add a project-language manifest only when needed.
 3. Fill `README.md`, `ARCHITECTURE.md`, `docs/PRD.md`, and `docs/FEATURE_REQUIREMENTS.md` with project-specific content.
+   - `README.en.md` and `README.ja.md` are distribution docs for the OctoSmith repository. If the target project does not need multilingual READMEs, delete them or remove the language links from `README.md`.
 4. Run `./scripts/verify` to check document routing, hook settings, and GitHub operating files.
 5. Connect the GitHub remote and default branch.
 6. Enter requirements and start the operating flow from `prd-writer`.

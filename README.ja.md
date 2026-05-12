@@ -94,6 +94,7 @@ flowchart TD
 1. このボイラープレートをプロジェクトルートに適用します。
 2. プロジェクト言語に合う manifest は、必要になった時だけ追加します。
 3. `README.md`、`ARCHITECTURE.md`、`docs/PRD.md`、`docs/FEATURE_REQUIREMENTS.md` をプロジェクト内容で埋めます。
+   - `README.en.md` と `README.ja.md` は OctoSmith リポジトリ用の配布文書です。対象プロジェクトで多言語 README が不要なら、削除するか `README.md` から言語リンクを外して構いません。
 4. `./scripts/verify` で文書ルーティング、hook 設定、GitHub 運用ファイルを確認します。
 5. GitHub remote と default branch を接続します。
 6. 要件を入力し、`prd-writer` から運用フローを開始します。

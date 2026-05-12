@@ -16,27 +16,6 @@
       "owner_scope": "root"
     },
     {
-      "path": "README.md",
-      "kind": "index",
-      "role": "운영 개요와 재사용 프롬프트 안내",
-      "read_when": ["프로젝트 목적 확인", "운영 프롬프트 확인", "전체 흐름 확인"],
-      "owner_scope": "root"
-    },
-    {
-      "path": "README.en.md",
-      "kind": "index",
-      "role": "운영 개요와 재사용 프롬프트 안내 영문판",
-      "read_when": ["영문 README 확인", "프로젝트 목적 확인", "운영 프롬프트 확인"],
-      "owner_scope": "root"
-    },
-    {
-      "path": "README.ja.md",
-      "kind": "index",
-      "role": "운영 개요와 재사용 프롬프트 안내 일본어판",
-      "read_when": ["일본어 README 확인", "프로젝트 목적 확인", "운영 프롬프트 확인"],
-      "owner_scope": "root"
-    },
-    {
       "path": ".github/pull_request_template.md",
       "kind": "reference",
       "role": "GitHub PR 본문 템플릿",
