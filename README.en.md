@@ -2,7 +2,7 @@
 
 # OctoSmith
 
-OctoSmith is a Codex-native development-operations boilerplate that uses Codex, Git, and GitHub to turn ideas into PRDs, issues, mother/sub PRs, and review-ready PRs.
+OctoSmith is a Codex-native development-operations boilerplate that uses Codex, Git, and GitHub to turn ideas into PRDs, issues, mother branches, optional sub PRs, and review-ready PRs.
 
 ```text
 OctoSmith
@@ -38,7 +38,7 @@ Codex is strong at single tasks, but real development operations repeatedly run 
 - Requirements are scattered across PRDs, issues, and PR bodies.
 - Large tasks become single oversized PRs that are hard to review.
 - After an interruption, it is unclear which documents to read and where to resume.
-- Review comments, unresolved threads, checks, and re-review requests are easy to miss manually.
+- Review comments, unresolved threads, checks, and Codex reaction signals are easy to miss manually.
 - Without hooks or document rules, Codex follows a different process each time.
 
 OctoSmith solves these problems with documents, skills, hooks, and GitHub surfaces instead of a server.
@@ -84,7 +84,7 @@ flowchart TD
   K --> L
   L --> M[pr-review-drain]
   M --> N{clean}
-  N -->|no| O[fix, verify, push, re-review]
+  N -->|no| O[fix, verify, push, wait for reaction]
   O --> M
   N -->|yes| P[ready to merge]
 ```
@@ -119,7 +119,7 @@ flowchart TD
 | `project-bootstrap` | Applies docs, hooks, GitHub templates, and verification structure to a new project |
 | `prd-writer` | Turns ideas into PRDs and feature requirements |
 | `issue-planner` | Writes and creates GitHub issue drafts from PRD and development schedule criteria |
-| `subpr-orchestrator` | Runs one issue as a mother branch and sub PR workflow |
+| `subpr-orchestrator` | Runs one issue on a mother branch and splits into sub PRs only when the diff is too large to review comfortably |
 | `pr-review-drain` | Processes PR review comments and threads until clean |
 
 If repo-local skills are not exposed automatically in a Codex session, ask Codex to read the relevant `SKILL.md` path directly.
@@ -188,48 +188,58 @@ flowchart TD
 
 ### subpr-orchestrator
 
-This skill runs one issue as a mother branch and multiple sub PRs.
+This skill runs one issue on a mother branch and splits it into multiple sub PRs only when the diff is too large to review comfortably.
 
 ```mermaid
 flowchart TD
   A[Read issue body and related docs] --> B[Create mother branch]
-  B --> C[Plan sub PRs]
-  C --> D[Define DnD for each sub PR]
-  D --> E{Parallelizable}
-  E -->|yes| F[Create multiple worktrees]
-  F --> G[Delegate to Codex sub-agents]
-  E -->|no| H[Proceed sequentially from the first sub PR]
-  G --> I[Implement, verify, commit, push]
-  H --> I
-  I --> J[Create PR]
-  J --> K[Run pr-review-drain]
-  K --> L{Previous PR merge required}
-  L -->|yes| M[Update mother branch]
-  M --> C
-  L -->|no| N[Prepare issue completion]
+  B --> C{Sub PR needed}
+  C -->|no| D[Implement directly on mother branch]
+  D --> E[Create PR]
+  C -->|yes| F[Plan sub PRs]
+  F --> G[Define DnD for each sub PR]
+  G --> H{Parallelizable}
+  H -->|yes| I[Create multiple worktrees]
+  I --> J[Delegate to Codex sub-agents]
+  H -->|no| K[Proceed sequentially from first sub PR]
+  J --> L[Implement verify commit push]
+  K --> L
+  L --> M[Create PR]
+  E --> N[Run pr-review-drain]
+  M --> N
+  N --> O{User merge required}
+  O -->|yes| P[Wait for user merge]
+  P --> Q[Update mother branch]
+  Q --> F
+  O -->|no| R[Prepare issue completion]
 ```
 
 ### pr-review-drain
 
-This skill drains PR review feedback until the PR is clean.
+This skill drains PR review feedback and Codex reactions until the PR is merge-ready.
 
 ```mermaid
 flowchart TD
   A[Find PR for current branch] --> B[Collect review comments]
   B --> C[Collect reviews and threads]
-  C --> D[Collect normal comments and checks]
-  D --> E[Normalize findings]
-  E --> F[Define DnD for each finding]
-  F --> G[Fix code docs tests]
-  G --> H[Run verification]
-  H --> I{Verification passed}
-  I -->|no| G
-  I -->|yes| J[commit push]
-  J --> K[Resolve threads]
-  K --> L[Request re-review]
-  L --> M{clean signal}
-  M -->|no| B
-  M -->|yes| N[Final summary]
+  C --> D[Collect current-head reactions and checks]
+  D --> E{New review input}
+  E -->|yes| I[Normalize findings]
+  E -->|no| F{eyes reaction}
+  F --> B
+  F -->|yes| P[30-second polling, max 30 minutes]
+  F -->|no| G{Fresh clean signal}
+  G -->|yes| H[Check status and threads, then summarize merge-ready state]
+  G -->|no| I[Normalize findings]
+  I --> J[Define DnD for each finding]
+  J --> K[Fix code docs tests]
+  K --> L[Run verification]
+  L --> M{Verification passed}
+  M -->|no| K
+  M -->|yes| N[commit push]
+  N --> O[Resolve threads]
+  O --> P
+  P --> B
 ```
 
 ## Recommended Prompts
@@ -276,7 +286,7 @@ Include:
 Show the draft before creating the issue, then create it with gh after approval.
 ```
 
-### Run An Issue As Sub PRs
+### Run An Issue On A Mother Branch And Split Only If Needed
 
 ```text
 /goal
@@ -285,10 +295,12 @@ Track GitHub issue #12 as the completion goal.
 First read AGENTS.md and the docs router, then check the issue body and related PRD/FEATURE_REQUIREMENTS/PLANS documents.
 In Plan mode, do not implement. Present a decision-complete proposed_plan.
 
-After the plan is approved, update the current base branch, create the mother branch, and split the issue into sub PR units.
-For each sub PR, document the goal, excluded scope, DnD, and verification command.
+After the plan is approved, update the current base branch, create the mother branch, and first decide whether a single PR is enough.
+If a single PR is enough, work directly on the mother branch without sub PRs. If the diff is too large to review comfortably, split the issue into sub PR units.
+When splitting into sub PRs, document the goal, excluded scope, DnD, and verification command for each sub PR.
 
-For parallelizable sub PRs, split the work with worktrees and Codex sub-agents. If there are sequential dependencies, merge the preceding PR, update the mother branch, then create the next branch.
+For parallelizable sub PRs, split the work with worktrees and Codex sub-agents. If there are sequential dependencies, wait until the user confirms that the preceding PR was merged, then update the mother branch and create the next branch.
+Do not merge directly from Codex. Hand required merges back to the user.
 
 For each PR, proceed through commit, push, and PR creation. At the end, repeat $pr-review-drain until the Codex review is clean.
 Write all responses and work summaries in Korean.
@@ -299,8 +311,10 @@ Write all responses and work summaries in Korean.
 ```text
 $pr-review-drain
 Run review drain on the PR for the current branch.
-Collect all review comments and threads, define DnD for each finding, then repeat fix/verify/commit/push/resolve/re-review/polling until clean.
-Include the PR URL, base/head, handled findings, verification commands, and remaining risks in the final summary.
+Collect PR body reactions, review comments, threads, and checks against the current head. If there is no new review input and only an eyes reaction is present, poll every 30 seconds for up to 30 minutes.
+When review feedback appears, handle it even if eyes is still present, then repeat fix/verify/commit/push/resolve.
+When a current-head +1 reaction or no-major-issues Codex review/comment appears and checks/threads are clean, summarize the merge-ready state.
+Include the PR URL, base/head, handled findings, verification commands, last reaction, clean signal freshness evidence, polling wait time, skipped/neutral checks, resolve failures, and remaining risks in the final summary.
 ```
 
 ## Examples
@@ -346,10 +360,10 @@ flowchart TD
   D --> E[Verify]
   E --> F[commit push]
   F --> G[Resolve thread]
-  G --> H[Request re-review]
-  H --> I{clean}
+  G --> H[reaction polling]
+  H --> I{clean signal}
   I -->|no| B
-  I -->|yes| J[Ready to merge]
+  I -->|yes| J[Merge-ready state]
 ```
 
 ## GitHub Operating Rules
@@ -358,7 +372,7 @@ flowchart TD
 - PR bodies should fill the DnD, verification, document changes, and risk sections in `.github/pull_request_template.md`.
 - The default CI runs `./scripts/verify` in `.github/workflows/verify.yml`.
 - Before requesting review, record the local `./scripts/verify` result in the PR body.
-- Clean review means no unresolved threads, passing checks, a Codex clean signal, and a clean working tree.
+- Clean review means no unresolved threads, no failed or pending checks, a current-head Codex `+1` reaction or no-major-issues review/comment clean signal, and a clean working tree.
 - If you change GitHub templates or workflows, run `./scripts/verify github`.
 
 ## Hook Policy

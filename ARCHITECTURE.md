@@ -29,11 +29,11 @@ OctoSmith
 ## 운영 모델
 
 1. 요구사항은 `prd-writer` skill로 `docs/PRD.md`와 `docs/FEATURE_REQUIREMENTS.md`에 정리한다.
-2. 구현 후보는 `issue-planner` skill로 GitHub issue 초안과 acceptance criteria, Definition of Done, 예상 sub PR 계획으로 만든다.
-3. 큰 issue는 `subpr-orchestrator` skill로 mother branch와 sub PR branch/worktree 단위로 쪼갠다.
+2. 구현 후보는 `issue-planner` skill로 GitHub issue 초안과 acceptance criteria, Definition of Done, 예상 sub PR 필요성 판단으로 만든다.
+3. 큰 issue는 `subpr-orchestrator` skill로 mother branch에서 운영하고, 리뷰하기 불편할 정도로 변경량이 클 때만 sub PR branch/worktree 단위로 쪼갠다.
 4. 독립적인 sub PR은 Codex sub-agent와 worktree로 병렬 실행한다.
-5. 순차 의존성이 있는 sub PR은 선행 PR merge 후 mother branch를 최신화하고 다음 branch를 만든다.
-6. 각 PR은 `pr-review-drain` skill로 리뷰 댓글, unresolved thread, checks, Codex clean signal을 확인하며 닫는다.
+5. 순차 의존성이 있는 sub PR은 사용자가 선행 PR을 merge한 뒤 mother branch를 최신화하고 다음 branch를 만든다.
+6. 각 PR은 `pr-review-drain` skill로 리뷰 댓글, unresolved thread, checks, Codex reaction clean signal을 확인하며 닫는다.
 7. hook은 workflow 자체를 대신하지 않고, 위험 명령 차단과 검증 누락 방지에 집중한다.
 
 ## 상태의 system of record

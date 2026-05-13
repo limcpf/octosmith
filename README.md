@@ -2,7 +2,7 @@
 
 # OctoSmith
 
-OctoSmith는 Codex, Git, GitHub를 최대한 활용해 아이디어를 PRD, issue, mother/sub PR, review-clean PR로 벼려내는 Codex-native 개발 운영 보일러플레이트입니다.
+OctoSmith는 Codex, Git, GitHub를 최대한 활용해 아이디어를 PRD, issue, mother branch, 필요한 경우 sub PR, review-clean PR로 벼려내는 Codex-native 개발 운영 보일러플레이트입니다.
 
 ```text
 OctoSmith
@@ -38,7 +38,7 @@ Codex는 단일 작업 수행에는 강하지만, 실제 개발 운영에서는 
 - 요구사항이 PRD, issue, PR 본문에 흩어집니다.
 - 큰 작업이 하나의 PR로 올라와 리뷰하기 어렵습니다.
 - 작업 중단 후 어떤 문서를 읽고 어디서 이어야 하는지 불명확합니다.
-- review comment, unresolved thread, checks, 재리뷰 요청이 수동으로 누락됩니다.
+- review comment, unresolved thread, checks, Codex reaction 신호가 수동으로 누락됩니다.
 - hook이나 문서 규칙 없이 Codex가 매번 다른 순서로 움직입니다.
 
 OctoSmith는 이 문제를 서버가 아니라 문서, skill, hook, GitHub 표면으로 해결합니다.
@@ -84,7 +84,7 @@ flowchart TD
   K --> L
   L --> M[pr-review-drain]
   M --> N{clean}
-  N -->|아니오| O[수정 검증 푸시 재리뷰]
+  N -->|아니오| O[수정 검증 푸시 reaction 대기]
   O --> M
   N -->|예| P[merge 준비]
 ```
@@ -119,7 +119,7 @@ flowchart TD
 | `project-bootstrap` | 새 프로젝트에 문서, hook, GitHub 템플릿, 검증 구조를 적용 |
 | `prd-writer` | 아이디어를 PRD와 기능 요구사항으로 정리 |
 | `issue-planner` | PRD와 개발 일정 기준으로 GitHub issue 초안 작성 및 생성 |
-| `subpr-orchestrator` | issue 하나를 mother branch와 sub PR workflow로 운영 |
+| `subpr-orchestrator` | issue 하나를 mother branch에서 운영하고, 변경량이 클 때만 sub PR workflow로 분할 |
 | `pr-review-drain` | PR 리뷰 댓글과 thread를 clean 상태까지 처리 |
 
 Codex 세션에서 repo-local skill이 자동 노출되지 않으면, 프롬프트에 해당 `SKILL.md` 경로를 직접 지정해 읽게 합니다.
@@ -188,48 +188,58 @@ flowchart TD
 
 ### subpr-orchestrator
 
-issue 하나를 mother branch와 여러 sub PR로 운영하는 skill입니다.
+issue 하나를 mother branch에서 운영하고, 변경량이 커서 리뷰가 불편할 때만 여러 sub PR로 나누는 skill입니다.
 
 ```mermaid
 flowchart TD
   A[issue 본문과 관련 문서 읽기] --> B[mother branch 생성]
-  B --> C[sub PR 계획 수립]
-  C --> D[각 sub PR DnD 정의]
-  D --> E{병렬 가능}
-  E -->|예| F[여러 worktree 생성]
-  F --> G[Codex sub-agent 위임]
-  E -->|아니오| H[선행 sub PR부터 순차 진행]
-  G --> I[구현 검증 commit push]
-  H --> I
-  I --> J[PR 생성]
-  J --> K[pr-review-drain 호출]
-  K --> L{선행 PR merge 필요}
-  L -->|예| M[mother branch 최신화]
-  M --> C
-  L -->|아니오| N[issue 완료 준비]
+  B --> C{Sub PR 필요}
+  C -->|아니오| D[mother branch에서 직접 구현]
+  D --> E[PR 생성]
+  C -->|예| F[sub PR 계획 수립]
+  F --> G[각 sub PR DnD 정의]
+  G --> H{병렬 가능}
+  H -->|예| I[여러 worktree 생성]
+  I --> J[Codex sub-agent 위임]
+  H -->|아니오| K[선행 sub PR부터 순차 진행]
+  J --> L[구현 검증 commit push]
+  K --> L
+  L --> M[PR 생성]
+  E --> N[pr-review-drain 호출]
+  M --> N
+  N --> O{사용자 merge 필요}
+  O -->|예| P[사용자 merge 대기]
+  P --> Q[mother branch 최신화]
+  Q --> F
+  O -->|아니오| R[issue 완료 준비]
 ```
 
 ### pr-review-drain
 
-PR의 리뷰 피드백을 clean 상태까지 닫는 skill입니다.
+PR의 리뷰 피드백과 Codex reaction을 merge 가능 상태까지 닫는 skill입니다.
 
 ```mermaid
 flowchart TD
   A[현재 branch의 PR 찾기] --> B[review comments 수집]
   B --> C[reviews와 threads 수집]
-  C --> D[normal comments와 checks 수집]
-  D --> E[finding 정규화]
-  E --> F[각 finding DnD 정의]
-  F --> G[코드 문서 테스트 수정]
-  G --> H[검증 실행]
-  H --> I{검증 통과}
-  I -->|아니오| G
-  I -->|예| J[commit push]
-  J --> K[resolved thread 처리]
-  K --> L[재리뷰 요청]
-  L --> M{clean signal}
-  M -->|아니오| B
-  M -->|예| N[최종 요약]
+  C --> D[현재 head 기준 reaction과 checks 수집]
+  D --> E{새 리뷰 입력}
+  E -->|예| I[finding 정규화]
+  E -->|아니오| F{eyes reaction}
+  F --> B
+  F -->|예| P[30초 polling, 최대 30분]
+  F -->|아니오| G{최신 clean signal}
+  G -->|예| H[checks와 thread 확인 후 merge 가능 상태 정리]
+  G -->|아니오| I[finding 정규화]
+  I --> J[각 finding DnD 정의]
+  J --> K[코드 문서 테스트 수정]
+  K --> L[검증 실행]
+  L --> M{검증 통과}
+  M -->|아니오| K
+  M -->|예| N[commit push]
+  N --> O[resolved thread 처리]
+  O --> P
+  P --> B
 ```
 
 ## 권장 프롬프트
@@ -276,7 +286,7 @@ PRD와 개발 일정 문서를 기준으로 다음에 해야 할 GitHub issue를
 issue를 만들기 전에 초안을 먼저 보여주고, 승인 후 gh로 생성해줘.
 ```
 
-### issue를 sub PR로 운영
+### issue를 mother branch에서 운영하고 필요 시 sub PR로 분할
 
 ```text
 /goal
@@ -285,10 +295,12 @@ GitHub issue #12를 완료 목표로 추적해줘.
 먼저 AGENTS.md와 docs 라우터를 읽고, issue 본문과 관련 PRD/FEATURE_REQUIREMENTS/PLANS 문서를 확인해줘.
 Plan 단계에서는 구현하지 말고 decision-complete한 proposed_plan을 제시해줘.
 
-Plan이 승인되면 현재 base branch를 최신화하고 mother branch를 만든 뒤, issue를 sub PR 단위로 나눠줘.
-각 sub PR마다 목표, 제외 범위, DnD, 검증 명령을 문서화해줘.
+Plan이 승인되면 현재 base branch를 최신화하고 mother branch를 만든 뒤, 단일 PR로 충분한지 먼저 판단해줘.
+단일 PR로 충분하면 sub PR 없이 mother branch에서 직접 작업하고, 변경량이 커서 리뷰가 불편하면 sub PR 단위로 나눠줘.
+sub PR로 나누는 경우 각 sub PR마다 목표, 제외 범위, DnD, 검증 명령을 문서화해줘.
 
-병렬 가능한 sub PR은 worktree와 Codex sub-agent로 나눠 진행하고, 순차 의존성이 있으면 선행 PR merge 후 최신화한 뒤 다음 branch를 만들어줘.
+병렬 가능한 sub PR은 worktree와 Codex sub-agent로 나눠 진행하고, 순차 의존성이 있으면 사용자가 선행 PR을 merge했다고 확인한 뒤 최신화하고 다음 branch를 만들어줘.
+Codex는 merge를 직접 실행하지 말고, 필요한 merge는 사용자에게 넘겨줘.
 
 각 PR은 commit/push/create PR까지 진행하고, 마지막에 $pr-review-drain으로 Codex 리뷰가 clean 될 때까지 반복해줘.
 모든 답변과 작업 요약은 한국어로 작성해줘.
@@ -299,8 +311,10 @@ Plan이 승인되면 현재 base branch를 최신화하고 mother branch를 만�
 ```text
 $pr-review-drain
 현재 브랜치의 PR을 대상으로 리뷰 drain을 수행해줘.
-리뷰 comment와 thread를 모두 수집하고, 각 finding별 DnD를 정의한 뒤 수정/검증/커밋/푸시/resolve/re-review/polling을 clean 상태까지 반복해줘.
-최종 요약에는 PR URL, base/head, 처리한 finding, 검증 명령, 남은 리스크를 포함해줘.
+현재 head 기준으로 PR 본문 reaction, 리뷰 comment, thread, checks를 모두 수집하고, 새 리뷰 입력이 없고 eyes reaction만 있으면 30초마다 최대 30분까지 대기해줘.
+리뷰가 달리면 eyes가 남아 있어도 각 finding별 DnD를 정의한 뒤 수정/검증/커밋/푸시/resolve를 반복해줘.
+현재 head 이후의 +1 reaction 또는 "더 이상 major issue 없음"류 Codex 리뷰/댓글이 확인되고 checks/thread가 clean이면 merge 가능 상태로 정리해줘.
+최종 요약에는 PR URL, base/head, 처리한 finding, 검증 명령, 마지막 reaction, clean signal 최신성 근거, polling 대기 시간, skipped/neutral check, resolve 실패 여부, 남은 리스크를 포함해줘.
 ```
 
 ## 사용 예시
@@ -346,10 +360,10 @@ flowchart TD
   D --> E[검증]
   E --> F[commit push]
   F --> G[thread resolve]
-  G --> H[재리뷰 요청]
-  H --> I{clean}
+  G --> H[reaction polling]
+  H --> I{clean signal}
   I -->|아니오| B
-  I -->|예| J[merge 준비]
+  I -->|예| J[merge 가능 상태]
 ```
 
 ## GitHub 운영 규칙
@@ -358,7 +372,7 @@ flowchart TD
 - PR 본문은 `.github/pull_request_template.md`의 DnD, 검증, 문서 변경, 리스크 섹션을 채웁니다.
 - 기본 CI는 `.github/workflows/verify.yml`에서 `./scripts/verify`를 실행합니다.
 - 리뷰 요청 전에는 로컬 `./scripts/verify` 결과를 PR 본문에 남깁니다.
-- 리뷰 clean 조건은 unresolved thread 없음, checks pass, Codex clean signal, 작업 tree clean입니다.
+- 리뷰 clean 조건은 unresolved thread 없음, failed/pending checks 없음, 현재 head 기준 Codex `+1` reaction 또는 no-major-issues 리뷰/댓글 clean signal, 작업 tree clean입니다.
 - GitHub 템플릿이나 workflow를 바꾸면 `./scripts/verify github`를 실행합니다.
 
 ## hook 정책

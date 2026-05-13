@@ -2,7 +2,7 @@
 
 # OctoSmith
 
-OctoSmith は、Codex、Git、GitHub を最大限に活用し、アイデアを PRD、issue、mother/sub PR、review-clean な PR へ鍛え上げる Codex-native な開発運用ボイラープレートです。
+OctoSmith は、Codex、Git、GitHub を最大限に活用し、アイデアを PRD、issue、mother branch、必要に応じた sub PR、review-clean な PR へ鍛え上げる Codex-native な開発運用ボイラープレートです。
 
 ```text
 OctoSmith
@@ -38,7 +38,7 @@ Codex は単一タスクの実行には強い一方で、実際の開発運用�
 - 要件が PRD、issue、PR 本文に散らばります。
 - 大きな作業が 1 つの PR になり、レビューしにくくなります。
 - 作業中断後、どの文書を読み、どこから再開すべきか不明確になります。
-- review comment、unresolved thread、checks、再レビュー依頼が手作業で漏れやすくなります。
+- review comment、unresolved thread、checks、Codex reaction の信号が手作業で漏れやすくなります。
 - hook や文書ルールがないと、Codex の動きが毎回変わります。
 
 OctoSmith はこの問題をサーバーではなく、文書、skill、hook、GitHub の表面で解決します。
@@ -84,7 +84,7 @@ flowchart TD
   K --> L
   L --> M[pr-review-drain]
   M --> N{clean}
-  N -->|いいえ| O[修正 検証 push 再レビュー]
+  N -->|いいえ| O[修正 検証 push reaction 待機]
   O --> M
   N -->|はい| P[merge 準備]
 ```
@@ -119,7 +119,7 @@ flowchart TD
 | `project-bootstrap` | 新しいプロジェクトに文書、hook、GitHub テンプレート、検証構造を適用 |
 | `prd-writer` | アイデアを PRD と機能要件へ整理 |
 | `issue-planner` | PRD と開発計画を基準に GitHub issue のドラフト作成と生成を行う |
-| `subpr-orchestrator` | 1 つの issue を mother branch と sub PR workflow で運用 |
+| `subpr-orchestrator` | 1 つの issue を mother branch で運用し、変更量が大きい時だけ sub PR workflow に分割 |
 | `pr-review-drain` | PR review comment と thread を clean 状態まで処理 |
 
 Codex セッションで repo-local skill が自動表示されない場合は、該当する `SKILL.md` パスを直接読ませます。
@@ -188,48 +188,58 @@ flowchart TD
 
 ### subpr-orchestrator
 
-1 つの issue を mother branch と複数の sub PR として運用する skill です。
+1 つの issue を mother branch で運用し、変更量が大きくレビューしにくい時だけ複数の sub PR に分ける skill です。
 
 ```mermaid
 flowchart TD
   A[issue 本文と関連文書を読む] --> B[mother branch 作成]
-  B --> C[sub PR 計画作成]
-  C --> D[各 sub PR の DnD 定義]
-  D --> E{並列可能}
-  E -->|はい| F[複数 worktree 作成]
-  F --> G[Codex sub-agent へ委任]
-  E -->|いいえ| H[先行 sub PR から順次進行]
-  G --> I[実装 検証 commit push]
-  H --> I
-  I --> J[PR 作成]
-  J --> K[pr-review-drain 実行]
-  K --> L{先行 PR merge が必要}
-  L -->|はい| M[mother branch 最新化]
-  M --> C
-  L -->|いいえ| N[issue 完了準備]
+  B --> C{Sub PR が必要}
+  C -->|いいえ| D[mother branch で直接実装]
+  D --> E[PR 作成]
+  C -->|はい| F[sub PR 計画作成]
+  F --> G[各 sub PR の DnD 定義]
+  G --> H{並列可能}
+  H -->|はい| I[複数 worktree 作成]
+  I --> J[Codex sub-agent へ委任]
+  H -->|いいえ| K[先行 sub PR から順次進行]
+  J --> L[実装 検証 commit push]
+  K --> L
+  L --> M[PR 作成]
+  E --> N[pr-review-drain 実行]
+  M --> N
+  N --> O{ユーザー merge が必要}
+  O -->|はい| P[ユーザー merge を待つ]
+  P --> Q[mother branch 最新化]
+  Q --> F
+  O -->|いいえ| R[issue 完了準備]
 ```
 
 ### pr-review-drain
 
-PR のレビュー feedback を clean 状態まで処理する skill です。
+PR のレビュー feedback と Codex reaction を merge 可能状態まで処理する skill です。
 
 ```mermaid
 flowchart TD
   A[現在 branch の PR を探す] --> B[review comments 収集]
   B --> C[reviews と threads 収集]
-  C --> D[normal comments と checks 収集]
-  D --> E[finding 正規化]
-  E --> F[各 finding の DnD 定義]
-  F --> G[コード 文書 テスト修正]
-  G --> H[検証実行]
-  H --> I{検証通過}
-  I -->|いいえ| G
-  I -->|はい| J[commit push]
-  J --> K[resolved thread 処理]
-  K --> L[再レビュー依頼]
-  L --> M{clean signal}
-  M -->|いいえ| B
-  M -->|はい| N[最終サマリー]
+  C --> D[現在 head 基準の reaction と checks 収集]
+  D --> E{新しい review 入力}
+  E -->|はい| I[finding 正規化]
+  E -->|いいえ| F{eyes reaction}
+  F --> B
+  F -->|はい| P[30 秒 polling 最大 30 分]
+  F -->|いいえ| G{最新 clean signal}
+  G -->|はい| H[checks と thread 確認後 merge 可能状態を整理]
+  G -->|いいえ| I[finding 正規化]
+  I --> J[各 finding の DnD 定義]
+  J --> K[コード 文書 テスト修正]
+  K --> L[検証実行]
+  L --> M{検証通過}
+  M -->|いいえ| K
+  M -->|はい| N[commit push]
+  N --> O[resolved thread 処理]
+  O --> P
+  P --> B
 ```
 
 ## 推奨プロンプト
@@ -276,7 +286,7 @@ PRD と開発計画文書を基準に、次に行うべき GitHub issue を詳�
 issue を作る前にドラフトを先に見せ、承認後に gh で作成して。
 ```
 
-### issue を sub PR で運用
+### issue を mother branch で運用し必要時だけ sub PR に分割
 
 ```text
 /goal
@@ -285,10 +295,12 @@ GitHub issue #12 を完了目標として追跡して。
 まず AGENTS.md と docs ルーターを読み、issue 本文と関連する PRD/FEATURE_REQUIREMENTS/PLANS 文書を確認して。
 Plan 段階では実装せず、decision-complete な proposed_plan を提示して。
 
-Plan が承認されたら現在の base branch を最新化し、mother branch を作った後、issue を sub PR 単位に分けて。
-各 sub PR ごとに目標、除外範囲、DnD、検証コマンドを文書化して。
+Plan が承認されたら現在の base branch を最新化し、mother branch を作った後、単一 PR で十分か先に判断して。
+単一 PR で十分なら sub PR なしで mother branch で直接作業し、変更量が大きくレビューしにくい場合だけ sub PR 単位に分けて。
+sub PR に分ける場合は、各 sub PR ごとに目標、除外範囲、DnD、検証コマンドを文書化して。
 
-並列可能な sub PR は worktree と Codex sub-agent に分けて進め、順次依存があれば先行 PR merge 後に最新化してから次の branch を作って。
+並列可能な sub PR は worktree と Codex sub-agent に分けて進め、順次依存があればユーザーが先行 PR を merge したと確認してから最新化し、次の branch を作って。
+Codex は merge を直接実行せず、必要な merge はユーザーに返して。
 
 各 PR は commit/push/create PR まで進め、最後に $pr-review-drain で Codex review が clean になるまで繰り返して。
 すべての回答と作業サマリーは韓国語で書いて。
@@ -299,8 +311,10 @@ Plan が承認されたら現在の base branch を最新化し、mother branch 
 ```text
 $pr-review-drain
 現在ブランチの PR を対象に review drain を実行して。
-review comment と thread をすべて収集し、各 finding ごとに DnD を定義してから、修正/検証/コミット/push/resolve/re-review/polling を clean 状態まで繰り返して。
-最終サマリーには PR URL、base/head、処理した finding、検証コマンド、残りリスクを含めて。
+現在 head 基準で PR 本文 reaction、review comment、thread、checks をすべて収集し、新しい review 入力がなく eyes reaction だけがあれば 30 秒ごとに最大 30 分まで待機して。
+レビューが付いたら eyes が残っていても各 finding ごとに DnD を定義し、修正/検証/コミット/push/resolve を繰り返して。
+現在 head 以降の +1 reaction または no-major-issues 相当の Codex レビュー/コメントが確認でき、checks/thread が clean なら merge 可能状態として整理して。
+最終サマリーには PR URL、base/head、処理した finding、検証コマンド、最後の reaction、clean signal の最新性根拠、polling 待機時間、skipped/neutral check、resolve 失敗有無、残りリスクを含めて。
 ```
 
 ## 使用例
@@ -346,10 +360,10 @@ flowchart TD
   D --> E[検証]
   E --> F[commit push]
   F --> G[thread resolve]
-  G --> H[再レビュー依頼]
-  H --> I{clean}
+  G --> H[reaction polling]
+  H --> I{clean signal}
   I -->|いいえ| B
-  I -->|はい| J[merge 準備]
+  I -->|はい| J[merge 可能状態]
 ```
 
 ## GitHub 運用ルール
@@ -358,7 +372,7 @@ flowchart TD
 - PR 本文は `.github/pull_request_template.md` の DnD、検証、文書変更、リスクセクションを埋めます。
 - 基本 CI は `.github/workflows/verify.yml` で `./scripts/verify` を実行します。
 - レビュー依頼前に、ローカル `./scripts/verify` の結果を PR 本文へ残します。
-- review clean 条件は unresolved thread なし、checks pass、Codex clean signal、作業 tree clean です。
+- review clean 条件は unresolved thread なし、failed/pending checks なし、現在 head 基準の Codex `+1` reaction または no-major-issues レビュー/コメント clean signal、作業 tree clean です。
 - GitHub テンプレートや workflow を変更したら `./scripts/verify github` を実行します。
 
 ## hook ポリシー

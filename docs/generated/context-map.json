@@ -214,15 +214,15 @@
     {
       "path": ".agents/skills/subpr-orchestrator/SKILL.md",
       "kind": "skill",
-      "role": "issue를 mother/sub PR과 worktree 흐름으로 운영하는 workflow",
-      "read_when": ["sub PR 분할", "mother branch 생성", "worktree 병렬 작업"],
+      "role": "issue를 mother branch에서 운영하고 필요 시 sub PR/worktree 흐름으로 분할하는 workflow",
+      "read_when": ["sub PR 필요성 판단", "mother branch 생성", "worktree 병렬 작업"],
       "owner_scope": ".agents/skills/subpr-orchestrator"
     },
     {
       "path": ".agents/skills/pr-review-drain/SKILL.md",
       "kind": "skill",
       "role": "PR 리뷰 finding을 clean 상태까지 처리하는 workflow",
-      "read_when": ["PR 리뷰 처리", "unresolved thread 해결", "Codex clean signal 확인"],
+      "read_when": ["PR 리뷰 처리", "unresolved thread 해결", "Codex reaction clean signal 확인"],
       "owner_scope": ".agents/skills/pr-review-drain"
     }
   ]
