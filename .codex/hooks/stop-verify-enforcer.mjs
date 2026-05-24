@@ -25,7 +25,7 @@ const verifySatisfied =
 if (!verifySatisfied) {
   const files = [...structuralFiles, ...lockfiles].slice(0, 20).join("\n- ");
   const reason = [
-    "문서/skill/hook/GitHub 템플릿/lockfile 변경이 검증되지 않았습니다.",
+    "문서/skill/hook/GitHub 템플릿/project 검증 설정/lockfile 변경이 검증되지 않았습니다.",
     "마무리 전에 ./scripts/verify 를 실행하고 결과를 반영하세요.",
     files === "" ? "" : `변경 파일:\n- ${files}`,
   ]

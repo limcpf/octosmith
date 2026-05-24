@@ -57,7 +57,12 @@ async function main() {
     }
   }
 
-  for (const shellPath of [".codex/hooks/pre-tool-use.sh", ".codex/hooks/post-tool-use.sh", "scripts/verify"]) {
+  for (const shellPath of [
+    ".codex/hooks/pre-tool-use.sh",
+    ".codex/hooks/post-tool-use.sh",
+    "scripts/verify",
+    "scripts/verify-project",
+  ]) {
     if (!(await exists(toAbsolute(shellPath)))) {
       errors.push(`shell hook wrapper 가 없습니다: ${shellPath}`);
       continue;
@@ -80,7 +85,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`hook 검증 성공: 이벤트 ${requiredEvents.length}개, command ${commands.length}개, mjs ${mjsFiles.length + 2}개를 확인했습니다.`);
+  console.log(`hook 검증 성공: 이벤트 ${requiredEvents.length}개, command ${commands.length}개, mjs ${mjsFiles.length + 3}개를 확인했습니다.`);
 }
 
 function collectHookCommands(payload) {

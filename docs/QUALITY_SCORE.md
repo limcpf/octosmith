@@ -1,6 +1,6 @@
 # 품질 점수판
 
-기준일: `2026-05-12`
+기준일: `2026-05-24`
 
 | 항목 | 점수 | 근거 | 다음 조치 |
 | --- | --- | --- | --- |
@@ -10,7 +10,7 @@
 | 실행 계획 운영 | B- | active/completed 계획 폴더와 규약이 있다. | 큰 작업은 active plan으로 추적한다. |
 | 신뢰성 기준 | B- | 재개, idempotency, review drain 기준을 문서화했다. | 실제 end-to-end 운영 결과를 completed plan으로 남긴다. |
 | 보안 기준 | B- | secret, 외부 입력, shell command, dependency 기준을 정의했다. | 프로젝트별 secret 경계를 추가한다. |
-| 자동 검증 | B | 문서 구조와 hook 설정 검증이 있다. | 코드가 생기면 lint/typecheck/test/build를 `verify`에 연결한다. |
+| 자동 검증 | B+ | 문서 구조, hook 설정, GitHub 운영 파일, 프로젝트별 검증 슬롯을 `./scripts/verify`에서 함께 실행한다. | 대상 프로젝트가 생기면 lint/typecheck/test/build를 `scripts/verify-project`에 연결한다. |
 
 ## 참고
 

@@ -15,7 +15,7 @@ A Codex-native forge for GitHub issues, branches, and review-ready PRs.
 - Node is not a project-language constraint. It is only the runtime for the Codex hooks and verification scripts in this boilerplate.
 - This boilerplate does not include `package.json`.
 - Target projects can use any language, including Python, Go, Rust, Java, Swift, Ruby, PHP, JavaScript, or TypeScript.
-- Language-specific manifests such as `package.json`, `pyproject.toml`, `Cargo.toml`, and `go.mod` should be added only when the real project needs them.
+- Language-specific manifests such as `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, and `build.gradle` should be added only when the real project needs them.
 
 The verification entry point is a shell script, not a package manager.
 
@@ -29,7 +29,10 @@ Individual verification commands are also available.
 ./scripts/verify docs
 ./scripts/verify hooks
 ./scripts/verify github
+./scripts/verify project
 ```
+
+The `project` verification target is a no-op by default. When a target project gains lint, test, build, or typecheck commands, wire them into [`scripts/verify-project`](./scripts/verify-project).
 
 ## What It Solves
 
