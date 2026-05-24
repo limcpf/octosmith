@@ -9,6 +9,7 @@ export const structuralPaths = new Set([
   ".github/pull_request_template.md",
   ".github/workflows/verify.yml",
   "scripts/verify",
+  "scripts/verify-project",
   "scripts/verify-doc-structure.mjs",
   "scripts/verify-github.mjs",
   "scripts/verify-hooks.mjs",
@@ -24,7 +25,18 @@ export const lockfileNames = new Set([
   "Gemfile.lock",
   "poetry.lock",
   "uv.lock",
+  "gradle.lockfile",
 ]);
+
+export const projectVerificationPathPatterns = [
+  /(^|\/)pom\.xml$/,
+  /(^|\/)build\.gradle(\.kts)?$/,
+  /(^|\/)settings\.gradle(\.kts)?$/,
+  /(^|\/)gradle\.properties$/,
+  /(^|\/)gradlew(\.bat)?$/,
+  /(^|\/)mvnw(\.cmd)?$/,
+  /(^|\/)gradle\/wrapper\/gradle-wrapper\.(jar|properties)$/,
+];
 
 export async function readHookInput() {
   const chunks = [];
@@ -183,6 +195,7 @@ export function isMutatingCommand(command) {
     /\b(git\s+(add|commit|push|merge|rebase|cherry-pick|switch\s+-c|branch\s+-D|worktree\s+(add|remove)))\b/,
     /\b(gh\s+(issue|pr|api|release))\b/,
     /\b(npm|pnpm|yarn|bun)\s+(install|add|remove|update|ci)\b/,
+    /(^|\s)(gradle|\.\/gradlew|mvn|\.\/mvnw)\s+(wrapper|init|versions:set|versions:use-latest-releases)\b/,
     /\b(rm|mv|cp|mkdir|touch|chmod|chown)\b/,
     />{1,2}/,
     /\bsed\s+-i\b/,
@@ -193,7 +206,8 @@ export function isMutatingCommand(command) {
 export function isVerifyCommand(command) {
   return [
     /(^|\s)(\.\/)?scripts\/verify(\s|$)/,
-    /(^|\s)(\.\/)?scripts\/verify\s+(docs|hooks|github|all)(\s|$)/,
+    /(^|\s)(\.\/)?scripts\/verify\s+(docs|hooks|github|project|all)(\s|$)/,
+    /(^|\s)(\.\/)?scripts\/verify-project(\s|$)/,
     /(^|\s)node\s+scripts\/verify-doc-structure\.mjs(\s|$)/,
     /(^|\s)node\s+scripts\/verify-hooks\.mjs(\s|$)/,
     /(^|\s)node\s+scripts\/verify-github\.mjs(\s|$)/,
@@ -225,7 +239,7 @@ export function listStructuralChanges(repoRoot) {
 }
 
 export function listLockfileChanges(repoRoot) {
-  return listRepoChanges(repoRoot).filter((filePath) => lockfileNames.has(path.posix.basename(filePath)));
+  return listRepoChanges(repoRoot).filter((filePath) => isLockfilePath(filePath));
 }
 
 export function isStructuralPath(filePath) {
@@ -237,11 +251,26 @@ export function isStructuralPath(filePath) {
     return true;
   }
 
+  if (isProjectVerificationPath(filePath)) {
+    return true;
+  }
+
   return (
     filePath.startsWith(".codex/hooks/") ||
     filePath.startsWith(".agents/skills/") ||
     filePath.startsWith(".github/ISSUE_TEMPLATE/")
   );
+}
+
+export function isLockfilePath(filePath) {
+  return (
+    lockfileNames.has(path.posix.basename(filePath)) ||
+    /(^|\/)gradle\/dependency-locks\/.+\.lockfile$/.test(filePath)
+  );
+}
+
+export function isProjectVerificationPath(filePath) {
+  return projectVerificationPathPatterns.some((pattern) => pattern.test(filePath));
 }
 
 export function fingerprintFiles(files) {

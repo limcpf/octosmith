@@ -15,7 +15,7 @@ A Codex-native forge for GitHub issues, branches, and review-ready PRs.
 - Node はプロジェクト言語の制約ではありません。このボイラープレートの Codex hook と検証スクリプトを実行するためのランタイムです。
 - このボイラープレートには `package.json` は含まれていません。
 - 対象プロジェクトは Python、Go、Rust、Java、Swift、Ruby、PHP、JavaScript/TypeScript など、どの言語でも構いません。
-- `package.json`、`pyproject.toml`、`Cargo.toml`、`go.mod` などの言語別 manifest は、実際のプロジェクトで必要になった時だけ追加します。
+- `package.json`、`pyproject.toml`、`Cargo.toml`、`go.mod`、`pom.xml`、`build.gradle` などの言語別 manifest は、実際のプロジェクトで必要になった時だけ追加します。
 
 検証の入口は package manager ではなく shell script です。
 
@@ -29,7 +29,10 @@ A Codex-native forge for GitHub issues, branches, and review-ready PRs.
 ./scripts/verify docs
 ./scripts/verify hooks
 ./scripts/verify github
+./scripts/verify project
 ```
+
+`project` 検証はデフォルトでは no-op です。対象プロジェクトに lint、test、build、typecheck が追加されたら、[`scripts/verify-project`](./scripts/verify-project) に言語別コマンドを接続します。
 
 ## 解決すること
 

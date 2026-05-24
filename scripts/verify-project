@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+
+printf '프로젝트 검증 없음: 언어별 lint/test/build가 생기면 scripts/verify-project에서 호출하세요.\n'

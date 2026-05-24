@@ -15,7 +15,7 @@ A Codex-native forge for GitHub issues, branches, and review-ready PRs.
 - Node는 프로젝트 언어 제약이 아니라, 보일러플레이트의 Codex hook과 검증 스크립트를 실행하기 위한 런타임입니다.
 - 이 보일러플레이트는 `package.json`을 포함하지 않습니다.
 - 대상 프로젝트는 Python, Go, Rust, Java, Swift, Ruby, PHP, JavaScript/TypeScript 등 어떤 언어여도 됩니다.
-- 언어별 manifest인 `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod` 등은 실제 프로젝트가 필요할 때만 추가합니다.
+- 언어별 manifest인 `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle` 등은 실제 프로젝트가 필요할 때만 추가합니다.
 
 검증 진입점은 package manager가 아니라 shell script입니다.
 
@@ -29,7 +29,10 @@ A Codex-native forge for GitHub issues, branches, and review-ready PRs.
 ./scripts/verify docs
 ./scripts/verify hooks
 ./scripts/verify github
+./scripts/verify project
 ```
+
+`project` 검증은 기본적으로 no-op입니다. 대상 프로젝트에 lint, test, build, typecheck가 생기면 [`scripts/verify-project`](./scripts/verify-project)에 언어별 명령을 연결합니다.
 
 ## 무엇을 해결하나
 
